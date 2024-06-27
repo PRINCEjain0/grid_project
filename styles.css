@@ -1,0 +1,15 @@
+.selected {
+    background-color: red; /* Tailwind's gray-300 */
+  }
+  
+  .grid > div {
+    border: 3px solid purple; /* Tailwind's gray-200 */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  
