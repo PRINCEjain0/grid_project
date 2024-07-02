@@ -10,6 +10,11 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+  } 
+  .selected-to-unmerge {
+    outline: 2px solid blue;
   }
+  
+  
 
   
