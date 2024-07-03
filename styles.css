@@ -1,20 +1,56 @@
 .selected {
-    background-color: red; 
-  }
-  
-  .grid > div {
-    border: 3px solid purple; 
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  } 
-  .selected-to-unmerge {
-    outline: 2px solid blue;
-  }
-  
-  
+  background-color: red; 
+}
 
-  
+.grid > div {
+  border: 3px solid purple; 
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+} 
+.selected-to-unmerge {
+  outline: 2px solid blue;
+}
+#subgrid-form {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: fixed; /* Make the form appear in a fixed position */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust positioning based on form size */
+  width: 250px; /* Optional: Set a width for the form */
+}
+
+#subgrid-form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+#subgrid-form input,
+#subgrid-form button {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+#subgrid-form button {
+  background-color: #4CAF50; /* Green */
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#subgrid-form button:hover {
+  opacity: 0.8; /* Slight opacity change on hover */
+}
+
+
+

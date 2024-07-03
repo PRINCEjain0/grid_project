@@ -17,13 +17,39 @@
     </div>
   </div>
   <!-- Merge/Unmerge/insert-subgrid Buttons -->
-  <div class="flex justify-center mt-4">
+  <div class="flex justify-center mt-4 py-5">
     <div class="flex space-x-4">
+     
       <button id="merge-btn" class="bg-blue-500 text-white py-2 px-4 rounded">Merge</button>
       <button id="unmerge-btn" class="bg-red-500 text-white py-2 px-4 rounded">Unmerge</button>
-      <button id="insert-subgrid-btn" class="bg-green-500 text-white py-2 px-4 rounded">Insert Subgrid</button>
+      <button id="insert-subgrid-btn" class="bg-yellow-500 text-white py-2 px-4 rounded">Insert Subgrid</button>
     </div>
   </div>
+
+  <!-- add/delete->row/col -->
+  <div class="flex justify-center py-10 space-x-4">
+  <button id="add-row-btn" class="bg-green-500 text-white py-2 px-4 rounded">Add Row</button>
+  <button id="delete-row-btn" class="bg-red-500 text-white py-2 px-4 rounded">Delete Row</button>
+  <button id="add-col-btn" class="bg-green-500 text-white py-2 px-4 rounded">Add Column</button>
+  <button id="delete-col-btn" class="bg-red-500 text-white py-2 px-4 rounded">Delete Column</button>
+</div>
+  
+<!-- subgrid form  -->
+  <form id="subgrid-form" style="display: none;">
+    <label for="subgrid-rows">Rows:</label>
+    <input type="number" id="subgrid-rows" name="rows" min="1" required>
+    <label for="subgrid-cols">Columns:</label>
+    <input type="number" id="subgrid-cols" name="cols" min="1" required>
+    <button type="submit">Create Subgrid</button>
+  </form>
+  <label for="num-rows"style="display: none;">Number of Rows:</label>
+  <span id="num-rows-container" style="display: none;">
+    <input type="number" id="num-rows" value="4" min="1" readonly>
+  </span>
+  <label for="num-cols" style="display: none;">Number of Columns:</label>
+  <span id="num-cols-container" style="display: none;">
+    <input type="number" id="num-cols" value="4" min="1" readonly>
+  </span>
   <script src="script.js"></script>
 </body>
 </html>
