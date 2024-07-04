@@ -21,30 +21,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to create grid cells
   function createGridCells(rows, cols) {
-    gridContainer.innerHTML = ''; 
+    gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    const existingCells = gridContainer.children;
+    const totalCells = rows * cols;
 
-    // Create grid cells
-    for (let i = 0; i < rows * cols; i++) {
-      const cell = document.createElement('div');
-      cell.dataset.index = i;
-      cell.dataset.merged = 'false';
-      gridContainer.appendChild(cell);
-      cell.addEventListener('click', () => {
-        if (cell.dataset.merged === 'true') {
-          if (cellToUnmerge) {
-            cellToUnmerge.classList.remove('selected-to-unmerge');
-          }
-          cellToUnmerge = cell;
-          cellToUnmerge.classList.add('selected-to-unmerge');
-        } else {
-          cell.classList.toggle('selected');
-          if (selectedCells.has(i)) {
-            selectedCells.delete(i);
-          } else {
-            selectedCells.add(i);
-          }
-        }
-      });
+    for (let i = 0; i < totalCells; i++) {
+      if (i >= existingCells.length) {
+        const cell = document.createElement('div');
+        cell.dataset.index = i;
+        cell.dataset.merged = 'false';
+        cell.addEventListener('click', handleCellClick);
+        gridContainer.appendChild(cell);
+      }
+    }
+
+    // Remove extra cells if rows or cols are reduced
+    while (gridContainer.children.length > totalCells) {
+      gridContainer.removeChild(gridContainer.lastChild);
+    }
+  }
+
+  // Handle cell click event
+  function handleCellClick() {
+    const cell = this;
+    const index = parseInt(cell.dataset.index);
+    if (cell.dataset.merged === 'true') {
+      if (cellToUnmerge) {
+        cellToUnmerge.classList.remove('selected-to-unmerge');
+      }
+      cellToUnmerge = cell;
+      cellToUnmerge.classList.add('selected-to-unmerge');
+    } else {
+      cell.classList.toggle('selected');
+      if (selectedCells.has(index)) {
+        selectedCells.delete(index);
+      } else {
+        selectedCells.add(index);
+      }
     }
   }
 
@@ -95,9 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (selectedSubgridCells.size >= 2) {
       const selectedArray = Array.from(selectedSubgridCells);
       const firstIndex = Math.min(...selectedArray);
-      const firstCell = subgridContainer.children[firstIndex]; 
+      const firstCell = subgridContainer.children[firstIndex];
 
-      // Calculate minimum and maximum row/column based on selected subgrid cells
       let minRow = Math.floor(firstIndex / cols);
       let maxRow = minRow;
       let minCol = firstIndex % cols;
@@ -115,14 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const rowspan = maxRow - minRow + 1;
       const colspan = maxCol - minCol + 1;
 
-      // Apply grid styles to the first selected subgrid cell
       firstCell.style.gridRowStart = minRow + 1;
       firstCell.style.gridRowEnd = minRow + 1 + rowspan;
       firstCell.style.gridColumnStart = minCol + 1;
       firstCell.style.gridColumnEnd = minCol + 1 + colspan;
       firstCell.dataset.merged = 'true';
 
-      // Hide other selected subgrid cells within the merged subgrid
       for (let i = minRow; i <= maxRow; i++) {
         for (let j = minCol; j <= maxCol; j++) {
           const index = i * cols + j;
@@ -132,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      selectedSubgridCells.clear(); // Clear selected subgrid cells
+      selectedSubgridCells.clear();
       firstCell.classList.remove('selected');
     } else {
       alert("Please select more than one cell to merge.");
@@ -158,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const colStart = parseInt(cell.style.gridColumnStart) - 1;
     const colEnd = parseInt(cell.style.gridColumnEnd) - 1;
 
-    // Remove any subgrid present
     while (cell.firstChild) {
       cell.removeChild(cell.firstChild);
     }
@@ -186,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const colStart = parseInt(cell.style.gridColumnStart) - 1;
     const colEnd = parseInt(cell.style.gridColumnEnd) - 1;
 
-    // Remove any subgrid present
     while (cell.firstChild) {
       cell.removeChild(cell.firstChild);
     }
@@ -211,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Insert subgrid
   insertSubgridButton.addEventListener('click', () => {
     if (cellToUnmerge && cellToUnmerge.dataset.merged === 'true') {
+      cellToUnmerge.style.backgroundColor = 'red';
       subgridForm.style.display = 'block';
       subgridForm.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -223,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // Create subgrid container
         subgridContainer = document.createElement('div');
         subgridContainer.style.display = 'grid';
         subgridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
@@ -232,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
         subgridContainer.style.width = '100%';
         subgridContainer.style.height = '100%';
 
-        // Create subgrid cells
         for (let i = 0; i < rows * cols; i++) {
           const subgridCell = document.createElement('div');
           subgridCell.style.border = '3px solid purple';
@@ -257,9 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
           subgridContainer.appendChild(subgridCell);
         }
 
-        // Clear cell content and insert subgrid
         cellToUnmerge.innerHTML = '';
         cellToUnmerge.appendChild(subgridContainer);
+        cellToUnmerge.style.backgroundColor = '';
         cellToUnmerge.classList.remove('selected-to-unmerge');
         cellToUnmerge = null;
 
@@ -279,8 +286,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Delete Row button
   deleteRowButton.addEventListener('click', () => {
     if (numRows > 1) {
-      numRows--;
-      updateGridSize();
+      if (canDeleteRow()) {
+        numRows--;
+        updateGridSize();
+      } else {
+        alert("Cannot delete row because it affects a merged cell.");
+      }
     } else {
       alert("Cannot delete more rows.");
     }
@@ -289,23 +300,54 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add Column button
   addColButton.addEventListener('click', () => {
     numCols++;
-    gridContainer.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`; 
     updateGridSize();
   });
 
   // Delete Column button
   deleteColButton.addEventListener('click', () => {
     if (numCols > 1) {
-      numCols--;
-      updateGridSize();
-      gridContainer.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`; 
+      if (canDeleteCol()) {
+        numCols--;
+        updateGridSize();
+      } else {
+        alert("Cannot delete column because it affects a merged cell.");
+      }
     } else {
       alert("Cannot delete more columns.");
     }
   });
 
-  // Function to update grid size based on input values
+  // Check if a row can be deleted
+  function canDeleteRow() {
+    const cells = gridContainer.children;
+    for (let cell of cells) {
+      if (cell.dataset.merged === 'true') {
+        const rowEnd = parseInt(cell.style.gridRowEnd) - 1;
+        if (rowEnd >= numRows) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  // Check if a column can be deleted
+  function canDeleteCol() {
+    const cells = gridContainer.children;
+    for (let cell of cells) {
+      if (cell.dataset.merged === 'true') {
+        const colEnd = parseInt(cell.style.gridColumnEnd) - 1;
+        if (colEnd >= numCols) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   function updateGridSize() {
+    numRowsInput.value = numRows;
+    numColsInput.value = numCols;
     createGridCells(numRows, numCols);
   }
 });
