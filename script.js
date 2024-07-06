@@ -53,16 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       cell.classList.toggle('selected');
       if (selectedCells.has(index)) {
-          selectedCells.delete(index);
-          if (cell === firstCell) {
-            firstCell = null; // Reset firstCell if the previously selected first cell is deselected
-          }
-        } else {
-          selectedCells.add(index);
-          if (firstCell === null || index < firstCell.dataset.index) { // Compare data indexes
-            firstCell = cell;
-          }
-        }
+        selectedCells.delete(index);
+      } else {
+        selectedCells.add(index);
+      }
     }
   }
 
