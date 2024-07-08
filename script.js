@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.id = `${row}_${col}`;
         cell.dataset.index = `${row}_${col}`;
         cell.dataset.merged = 'false';
+        cell.dataset.hiddenByMerge = 'false'; // New attribute to track hidden cells
         cell.addEventListener('click', handleCellClick);
         gridContainer.appendChild(cell);
       }
@@ -60,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+ 
 
   // Initial creation of grid
   createGridCells(numRows, numCols);
@@ -87,6 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const rowspan = maxRow - minRow + 1;
       const colspan = maxCol - minCol + 1;
 
+      // Check if any cell within the selected range is already part of a merged cell
+      for (let i = minRow; i <= maxRow; i++) {
+        for (let j = minCol; j <= maxCol; j++) {
+          const index = `${i}_${j}`;
+          const cell = gridContainer.querySelector(`[data-index="${index}"]`);
+          if (cell && (cell.dataset.merged === 'true' || cell.dataset.hiddenByMerge === 'true')) {
+            alert("Cannot merge cells because one or more cells are already part of an existing merged cell.");
+            return;
+          }
+        }
+      }
+
       firstCell.style.gridRowStart = minRow + 1;
       firstCell.style.gridRowEnd = minRow + 1 + rowspan;
       firstCell.style.gridColumnStart = minCol + 1;
@@ -100,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
            
             if (`${i + 1}_${j + 1}` !== firstIndex.join('_')) { // Efficient comparison
               cell.style.display = 'none';
+              cell.dataset.hiddenByMerge === 'true';
             }
         }
       }
@@ -130,6 +145,18 @@ document.addEventListener('DOMContentLoaded', () => {
           const rowspan = maxRow - minRow + 1;
           const colspan = maxCol - minCol + 1;
 
+             // Check if any cell within the selected range is already part of a merged cell
+          for (let i = minRow; i <= maxRow; i++) {
+            for (let j = minCol; j <= maxCol; j++) {
+              const index = i * subgridState.cols + j;
+              const cell = subgridContainer.children[index];
+              if (cell && (cell.dataset.merged === 'true' || cell.dataset.hiddenByMerge === 'true')) {
+                alert("Cannot merge cells because one or more cells are already part of an existing merged cell.");
+                return;
+              }
+            }
+          }
+
           firstCell.style.gridRowStart = minRow + 1;
           firstCell.style.gridRowEnd = minRow + 1 + rowspan;
           firstCell.style.gridColumnStart = minCol + 1;
@@ -141,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const index = i * subgridState.cols + j;
               if (index !== firstIndex) {
                 subgridContainer.children[index].style.display = 'none';
+                subgridContainer.children[index].dataset.hiddenByMerge = 'true';
               }
             }
           }
@@ -196,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unmergedCell.style.display = '';
         unmergedCell.classList.remove('selected');
         unmergedCell.dataset.merged = 'false';
+        unmergedCell.dataset.hiddenByMerge = 'false'; // Mark as unhidden
       }
     }
 
@@ -220,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unmergedCell.style.display = '';
         unmergedCell.classList.remove('selected');
         unmergedCell.dataset.merged = 'false';
+        container.children[index].dataset.hiddenByMerge = 'false'; // Mark as unhidden
       }
     }
 
@@ -244,15 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < cells.length; i++) {
       const subgridCell = cells[i];
       const index = startIndex + i;
+      
   
       const mainGridCell = mainGrid.children[index];
-      if (!mainGridCell) {
-        console.error(`Main grid cell at index ${index} not found.`);
-        continue;
-      }
-  
-      // Perform operations on mainGridCell and subgridCell
-      // ...
+     
   
       // Remove subgridCell from DOM
       if (subgridCell.parentElement === container) {
@@ -309,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
           subgridCell.style.border = '3px solid purple';
           subgridCell.dataset.index = i;
           subgridCell.dataset.merged = 'false';
+          subgridCell.dataset.hiddenByMerge = 'false';
           subgridCell.addEventListener('click', () => {
             if (subgridCell.dataset.merged === 'true') {
               if (subgridState.cellToUnmerge) {
