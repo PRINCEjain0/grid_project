@@ -67,61 +67,68 @@ document.addEventListener('DOMContentLoaded', () => {
   createGridCells(numRows, numCols);
 
   // Merge cells
-  mergeButton.addEventListener('click', () => {
-    if (selectedCells.size >= 2) {
-      const selectedArray = Array.from(selectedCells);
-      const firstIndex = selectedArray[0].split('_').map(Number);
-        const firstCell = gridContainer.querySelector(`[data-index="${firstIndex[0]}_${firstIndex[1]}"]`);
+mergeButton.addEventListener('click', () => {
+  if (selectedCells.size >= 2) {
+    const selectedArray = Array.from(selectedCells);
+    console.log('Selected cells:', selectedArray);
+    
+    const firstIndex = selectedArray[0].split('_').map(Number);
+    const firstCell = gridContainer.querySelector(`[data-index="${firstIndex[0]}_${firstIndex[1]}"]`);
 
+    let minRow = firstIndex[0] - 1;
+    let maxRow = minRow;
+    let minCol = firstIndex[1] - 1;
+    let maxCol = minCol;
 
-        let minRow = firstIndex[0] - 1;
-        let maxRow = minRow;
-        let minCol = firstIndex[1] - 1;
-        let maxCol = minCol;
+    selectedArray.forEach(index => {
+      const [row, col] = index.split('_').map(Number);
+      if (row < minRow + 1) minRow = row - 1;
+      if (row > maxRow + 1) maxRow = row - 1;
+      if (col < minCol + 1) minCol = col - 1;
+      if (col > maxCol + 1) maxCol = col - 1;
+    });
 
-        selectedArray.forEach(index => {
-          const [row, col] = index.split('_').map(Number);
-          if (row < minRow + 1) minRow = row - 1;
-          if (row > maxRow + 1) maxRow = row - 1;
-          if (col < minCol + 1) minCol = col - 1;
-          if (col > maxCol + 1) maxCol = col - 1;
-        });
-      const rowspan = maxRow - minRow + 1;
-      const colspan = maxCol - minCol + 1;
+    console.log('Min row:', minRow, 'Max row:', maxRow, 'Min col:', minCol, 'Max col:', maxCol);
 
-      // Check if any cell within the selected range is already part of a merged cell
-      for (let i = minRow; i <= maxRow; i++) {
-        for (let j = minCol; j <= maxCol; j++) {
-          const index = `${i}_${j}`;
-          const cell = gridContainer.querySelector(`[data-index="${index}"]`);
-          if (cell && (cell.dataset.merged === 'true' || cell.dataset.hiddenByMerge === 'true')) {
+    const rowspan = maxRow - minRow + 1;
+    const colspan = maxCol - minCol + 1;
+
+    // Check if any cell within the selected range is already part of a merged cell
+    for (let i = minRow; i <= maxRow; i++) {
+      for (let j = minCol; j <= maxCol; j++) {
+        const index = `${i + 1}_${j + 1}`;
+        const cell = gridContainer.querySelector(`[data-index="${index}"]`);
+        if (cell) {
+          console.log('Checking cell:', index, 'Merged:', cell.dataset.merged, 'HiddenByMerge:', cell.dataset.hiddenByMerge);
+          if (cell.dataset.merged === 'true' || cell.dataset.hiddenByMerge === 'true') {
             alert("Cannot merge cells because one or more cells are already part of an existing merged cell.");
             return;
           }
         }
       }
+    }
 
-      firstCell.style.gridRowStart = minRow + 1;
-      firstCell.style.gridRowEnd = minRow + 1 + rowspan;
-      firstCell.style.gridColumnStart = minCol + 1;
-      firstCell.style.gridColumnEnd = minCol + 1 + colspan;
-      firstCell.dataset.merged = 'true';
+    firstCell.style.gridRowStart = minRow + 1;
+    firstCell.style.gridRowEnd = minRow + 1 + rowspan;
+    firstCell.style.gridColumnStart = minCol + 1;
+    firstCell.style.gridColumnEnd = minCol + 1 + colspan;
+    firstCell.dataset.merged = 'true';
 
-      for (let i = minRow; i <= maxRow; i++) {
-        for (let j = minCol; j <= maxCol; j++) {
-          const index = `${i + 1}_${j + 1}`;
-            const cell = gridContainer.querySelector(`[data-index="${index}"]`);
-           
-            if (`${i + 1}_${j + 1}` !== firstIndex.join('_')) { // Efficient comparison
-              cell.style.display = 'none';
-              cell.dataset.hiddenByMerge === 'true';
-            }
+    for (let i = minRow; i <= maxRow; i++) {
+      for (let j = minCol; j <= maxCol; j++) {
+        const index = `${i + 1}_${j + 1}`;
+        const cell = gridContainer.querySelector(`[data-index="${index}"]`);
+        if (`${i + 1}_${j + 1}` !== firstIndex.join('_')) {
+          cell.style.display = 'none';
+          cell.dataset.hiddenByMerge = 'true';
         }
       }
+    }
 
-      selectedCells.clear();
-      firstCell.classList.remove('selected');
-    } else {
+    selectedCells.clear();
+    firstCell.classList.remove('selected');
+  
+  }else {
       subgridStateMap.forEach((subgridState, subgridContainer) => {
         if (subgridState.selectedSubgridCells.size >= 2) {
           const selectedArray = Array.from(subgridState.selectedSubgridCells);
