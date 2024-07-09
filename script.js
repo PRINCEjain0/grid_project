@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let numRows = parseInt(numRowsInput.value);
   let numCols = parseInt(numColsInput.value);
   const selectedCells = new Set();
-  const subgridStateMap = new Map();
+  // const subgridStateMap = new Map();
   let cellToUnmerge = null;
 
   // Function to create grid cells
@@ -127,95 +127,14 @@ mergeButton.addEventListener('click', () => {
 
     selectedCells.clear();
     firstCell.classList.remove('selected');
+  }
   
-  }else {
-      subgridStateMap.forEach((subgridState, subgridContainer) => {
-        if (subgridState.selectedSubgridCells.size >= 2) {
-          const selectedArray = Array.from(subgridState.selectedSubgridCells);
-          const firstIndex = Math.min(...selectedArray);
-          const firstCell = subgridContainer.children[firstIndex];
-
-          let minRow = Math.floor(firstIndex / subgridState.cols);
-          let maxRow = minRow;
-          let minCol = firstIndex % subgridState.cols;
-          let maxCol = minCol;
-
-          selectedArray.forEach(index => {
-            const row = Math.floor(index / subgridState.cols);
-            const col = index % subgridState.cols;
-            if (row < minRow) minRow = row;
-            if (row > maxRow) maxRow = row;
-            if (col < minCol) minCol = col;
-            if (col > maxCol) maxCol = col;
-          });
-
-          const rowspan = maxRow - minRow + 1;
-          const colspan = maxCol - minCol + 1;
-
-             // Check if any cell within the selected range is already part of a merged cell
-          for (let i = minRow; i <= maxRow; i++) {
-            for (let j = minCol; j <= maxCol; j++) {
-              const index = i * subgridState.cols + j;
-              const cell = subgridContainer.children[index];
-              if (cell && (cell.dataset.merged === 'true' || cell.dataset.hiddenByMerge === 'true')) {
-                alert("Cannot merge cells because one or more cells are already part of an existing merged cell.");
-                return;
-              }
-            }
-          }
-
-          firstCell.style.gridRowStart = minRow + 1;
-          firstCell.style.gridRowEnd = minRow + 1 + rowspan;
-          firstCell.style.gridColumnStart = minCol + 1;
-          firstCell.style.gridColumnEnd = minCol + 1 + colspan;
-          firstCell.dataset.merged = 'true';
-
-          for (let i = minRow; i <= maxRow; i++) {
-            for (let j = minCol; j <= maxCol; j++) {
-              const index = i * subgridState.cols + j;
-              if (index !== firstIndex) {
-                subgridContainer.children[index].style.display = 'none';
-                subgridContainer.children[index].dataset.hiddenByMerge = 'true';
-              }
-            }
-          }
-
-          subgridState.selectedSubgridCells.clear();
-          firstCell.classList.remove('selected');
-        }
-      });
-    }
-  });
-
-  // Unmerge cell
-  unmergeButton.addEventListener('click', () => {
-    if (cellToUnmerge) {
-      if (subgridStateMap.has(cellToUnmerge.firstChild)) {
-        const subgridState = subgridStateMap.get(cellToUnmerge.firstChild);
-        if (subgridState.cellToUnmerge) {
-          unmergeSubgridCell(subgridState.cellToUnmerge, cellToUnmerge.firstChild, subgridState.cols);
-          subgridState.cellToUnmerge.classList.remove('selected-to-unmerge');
-          subgridState.cellToUnmerge = null;
-        } else {
-          // Check if any cells are still merged
-          let allUnmerged = true;
-          for (let i = 0; i < cellToUnmerge.firstChild.children.length; i++) {
-            if (cellToUnmerge.firstChild.children[i].dataset.merged === 'true') {
-              allUnmerged = false;
-              break;
-            }
-          }
-          if (allUnmerged) {
-            // If no merged cells are left, unmerge the whole subgrid
-            unmergeAllSubgridCells(cellToUnmerge.firstChild, subgridState.cols);
-          }
-        }
-      } else {
+  
         unmergeMainGridCell(cellToUnmerge, gridContainer);
         cellToUnmerge.classList.remove('selected-to-unmerge');
         cellToUnmerge = null;
-      }
-    }
+      
+    
   });
 
   function unmergeMainGridCell(cell, container) {
@@ -243,138 +162,7 @@ mergeButton.addEventListener('click', () => {
   }
 
   
-  function unmergeSubgridCell(cell, container, cols) {
-    const rowStart = parseInt(cell.style.gridRowStart) - 1;
-    const rowEnd = parseInt(cell.style.gridRowEnd) - 1;
-    const colStart = parseInt(cell.style.gridColumnStart) - 1;
-    const colEnd = parseInt(cell.style.gridColumnEnd) - 1;
-
-    for (let i = rowStart; i < rowEnd; i++) {
-      for (let j = colStart; j < colEnd; j++) {
-        const index = i * cols + j;
-        const unmergedCell = container.children[index];
-        unmergedCell.style.display = '';
-        unmergedCell.classList.remove('selected');
-        unmergedCell.dataset.merged = 'false';
-        container.children[index].dataset.hiddenByMerge = 'false'; // Mark as unhidden
-      }
-    }
-
-    cell.style.gridRowStart = '';
-    cell.style.gridRowEnd = '';
-    cell.style.gridColumnStart = '';
-    cell.style.gridColumnEnd = '';
-    cell.dataset.merged = 'false';
-  }
-
-  function unmergeAllSubgridCells(container, cols) {
-    const mainGrid = container.parentElement;
-    
-    if (!mainGrid || !container.parentElement) {
-      console.error('Main grid or container parent element does not exist.');
-      return;
-    }
   
-    const cells = container.children;
-    const startIndex = parseInt(mainGrid.dataset.index);
-  
-    for (let i = 0; i < cells.length; i++) {
-      const subgridCell = cells[i];
-      const index = startIndex + i;
-      
-  
-      const mainGridCell = mainGrid.children[index];
-     
-  
-      // Remove subgridCell from DOM
-      if (subgridCell.parentElement === container) {
-        container.removeChild(subgridCell);
-      } else {
-        console.warn('subgridCell parent mismatch or already removed.');
-      }
-    }
-  
-    // Remove container from mainGrid
-    if (container.parentElement === mainGrid) {
-      mainGrid.removeChild(container);
-    } else {
-      console.warn('container parent mismatch or already removed.');
-    }
-  
-    // Optionally, clear references or perform additional cleanup
-    subgridStateMap.delete(container);
-  }
-  
-  
-  // Insert subgrid
-  insertSubgridButton.addEventListener('click', () => {
-    if (cellToUnmerge && cellToUnmerge.dataset.merged === 'true') {
-      cellToUnmerge.style.backgroundColor = 'red';
-      subgridForm.style.display = 'block';
-      subgridForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const rows = parseInt(document.getElementById('subgrid-rows').value);
-        const cols = parseInt(document.getElementById('subgrid-cols').value);
-
-        if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) {
-          alert("Invalid input for rows or columns.");
-          return;
-        }
-
-        const subgridContainer = document.createElement('div');
-        subgridContainer.style.display = 'grid';
-        subgridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-        subgridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-        subgridContainer.style.gap = '1px';
-        subgridContainer.style.width = '100%';
-        subgridContainer.style.height = '100%';
-
-        const subgridState = {
-          selectedSubgridCells: new Set(),
-          cellToUnmerge: null,
-          cols: cols
-        };
-
-        for (let i = 0; i < rows * cols; i++) {
-          const subgridCell = document.createElement('div');
-          subgridCell.style.border = '3px solid purple';
-          subgridCell.dataset.index = i;
-          subgridCell.dataset.merged = 'false';
-          subgridCell.dataset.hiddenByMerge = 'false';
-          subgridCell.addEventListener('click', () => {
-            if (subgridCell.dataset.merged === 'true') {
-              if (subgridState.cellToUnmerge) {
-                subgridState.cellToUnmerge.classList.remove('selected-to-unmerge');
-              }
-              subgridState.cellToUnmerge = subgridCell;
-              subgridState.cellToUnmerge.classList.add('selected-to-unmerge');
-            } else {
-              subgridCell.classList.toggle('selected');
-              if (subgridState.selectedSubgridCells.has(i)) {
-                subgridState.selectedSubgridCells.delete(i);
-              } else {
-                subgridState.selectedSubgridCells.add(i);
-              }
-            }
-          });
-          subgridContainer.appendChild(subgridCell);
-        }
-
-        subgridStateMap.set(subgridContainer, subgridState);
-
-        cellToUnmerge.innerHTML = '';
-        cellToUnmerge.appendChild(subgridContainer);
-        cellToUnmerge.style.backgroundColor = '';
-        cellToUnmerge.classList.remove('selected-to-unmerge');
-        cellToUnmerge = null;
-
-        subgridForm.style.display = 'none';
-      }, { once: true });
-    } else {
-      alert("Please select a merged cell to insert a subgrid.");
-    }
-  });
 
  // Add Row button
 addRowButton.addEventListener('click', () => {
